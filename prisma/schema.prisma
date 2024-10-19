@@ -1,0 +1,158 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+
+model User {
+  id                Int      @id @default(autoincrement())
+  nick              String   
+  email             String   @unique
+  password          String
+  active            Boolean  @default(false)
+  activationCode    String?  // Optional field
+  passwordResetCode String?  // Optional field
+  intelligence      Int      @default(1)
+  endurance         Int      @default(1)
+  coordination      Int      @default(1)
+  luck              Int      @default(1)
+  region            Int?     // Optional
+  factory           Int?     // Optional
+  pro               Boolean  @default(false)
+  theme             String   @default("light")
+  exp               Int      @default(420)
+  party             Int?     // Optional
+  residency         Int?     // Optional
+  donations         Int      @default(0)
+  birthday          DateTime @default(now())
+  resting           DateTime @default(now())
+  fatigue           Int      @default(0)
+  productivity      Int      @default(100)
+  timeToNextAction  DateTime @default(now())
+  levcoins          Int      @default(10)
+  country           String   @default("")
+  workPermit1       Int?     // Optional
+  workPermit2       Int?     // Optional
+  workPermit3       Int?     // Optional
+
+  regionInfo        Region?   @relation("UserRegion", fields: [region], references: [id])
+  factoryInfo       Factory?  @relation("UserFactory", fields: [factory], references: [id])
+  partyInfo         Party?    @relation("PartyMembers", fields: [party], references: [id])
+  stateWorkPermit1  State?    @relation("StatePermit1", fields: [workPermit1], references: [id])
+  stateWorkPermit2  State?    @relation("StatePermit2", fields: [workPermit2], references: [id])
+  stateWorkPermit3  State?    @relation("StatePermit3", fields: [workPermit3], references: [id])
+
+  factories         Factory[] @relation("FactoryOwner") 
+  leaderOfParty     Party?    @relation("PartyLeader")
+}
+
+
+
+model Region {
+  id                Int      @id @default(autoincrement())
+  name              String   @unique
+  state             Int
+  users             User[]   @relation("UserRegion") // Users that belong to this region
+  factories         Factory[]
+  stateInfo         State    @relation(fields: [state], references: [id])
+  schools            Int      @default(1)
+  sportCenter        Int      @default(1)
+  universities       Int      @default(1)
+  recreativeCenter   Int      @default(1)
+  policeStation      Int      @default(1)
+  militaryCamps      Int      @default(1)
+  coalPlants         Int      @default(1)
+  waterPlants        Int      @default(1)
+  healthCenters      Int      @default(1)
+  militaryBases      Int      @default(1)
+  happiness          Int      @default(1)
+  basicEducation     Int      @default(1)
+  healthSystem       Int      @default(1)
+  higherEducation    Int      @default(1)
+  coalBonus          Int      @default(1)
+  uraniumBonus       Int      @default(1)
+  lithiumBonus       Int      @default(1)
+  diamondBonus       Int      @default(1)
+  waterBonus         Int      @default(1)
+  ironBonus          Int      @default(1)
+  oilBonus           Int      @default(1)
+  farmlandsBonus     Int      @default(1)
+  terrain            String   @default("Mountains")
+  lat                Float    @default(1.0)
+  lon                Float    @default(1.0)
+  frontiers          String   @default("1")
+  countryCode        String   @default("co")
+  isoNumeric         Int      @default(1)
+}
+
+model State {
+  id                   Int      @id @default(autoincrement())
+  name                 String   @unique
+  levcoins             Int      @default(1)
+  uranium              Int      @default(1)
+  coal                 Int      @default(1)
+  lithium              Int      @default(1)
+  diamond              Int      @default(1)
+  water                Int      @default(1)
+  iron                 Int      @default(1)
+  oil                  Int      @default(1)
+  leader               Int?
+  ministerOfEconomics  Int?
+  ministerOfDefense    Int?
+  ministerOfForeignAffairs Int?
+  kindOfGovernment     Int      @default(0)
+  electionsInProgress  Boolean  @default(false)
+  parties              Party[]
+  regions              Region[]
+  workPermits1         User[]   @relation("StatePermit1")
+  workPermits2         User[]   @relation("StatePermit2")
+  workPermits3         User[]   @relation("StatePermit3")
+}
+
+
+model Party {
+  id                   Int      @id @default(autoincrement())
+  name                 String   @unique
+  state                Int
+  exp                  Int      @default(200)
+  leader               Int?     @unique  // Add @unique here for one-to-one relation
+  kindBonus            String   @default("damage")
+  positionsInParlament Int      @default(0)
+
+  stateInfo            State    @relation(fields: [state], references: [id])
+  leaderInfo           User?    @relation("PartyLeader", fields: [leader], references: [id])
+  members              User[]   @relation("PartyMembers")
+}
+
+
+
+model Factory {
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  exp          Int      @default(500)
+  kindFactory  String   @default("farmland")
+  percent      Boolean  @default(true)
+  qty          Int      @default(0)
+  owner        Int
+  salary       Int      @default(0)
+  levcoins     Int      @default(0)
+  region       Int
+
+  workers      User[]   @relation("UserFactory") // Add the opposite relation here
+  ownerInfo    User     @relation("FactoryOwner", fields: [owner], references: [id])
+  regionInfo   Region   @relation(fields: [region], references: [id])
+}
+
+
+
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
