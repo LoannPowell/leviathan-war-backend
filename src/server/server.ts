@@ -16,8 +16,13 @@ export class Server {
     }
 
     public start () {
-        this.app.listen(process.env.PORT || 3002, () => {
-            console.log(`🦊 Elysia is running at ${this.app.server?.hostname}:${this.app.server?.port}`)
-        })
+        try {
+            this.app.listen(process.env.PORT || 3002, () => {
+                console.log(`🦊 Elysia is running at ${this.app.server?.hostname}:${this.app.server?.port}`)
+            })
+        }
+        catch(e) {
+            console.log(e);
+        }
     }
 }
