@@ -1,6 +1,11 @@
-import { Server } from './server/server'
+import { Elysia } from "elysia";
+import { authRouter } from "./auth/authRouter";
+import { userRouter } from "./user/userRouter";
 
-(() => {
-  const server = new Server();
-  server.start();
-})();
+new Elysia()
+    .group('/api/v1', (app) =>
+        app
+          .use(authRouter)
+          .use(userRouter)
+    )
+    .listen(process.env.PORT || 3002, () => {console.log(`🦊 Elysia is running at ${process.env.PORT || 3002}`)})

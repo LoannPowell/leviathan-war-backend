@@ -4,7 +4,7 @@ import { activation, login } from "./services";
 import { SECRET_KEY } from "../variables";
 import { errorHandler } from "../utilities/error";
 
-export const authRoutes = new Elysia({prefix: '/auth'})
+export const authRouter = new Elysia({prefix: '/auth'})
     .use(jwt({
         name:'jwt',
         secret: SECRET_KEY,
