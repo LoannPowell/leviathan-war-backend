@@ -5,6 +5,7 @@ import { userRouter } from "./user/userRouter";
 new Elysia()
     .group('/api/v1', (app) =>
         app
+          .get('/health', () => "I'm healthy")
           .use(authRouter)
           .use(userRouter)
     )
