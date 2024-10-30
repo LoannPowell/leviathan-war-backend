@@ -13,14 +13,15 @@ export const authRouter = new Elysia({prefix: '/auth'})
         try {
             const  { id } = await login({ email: body.email, password: body.password});
             const jwtValue = await jwt.sign({id})
+            const isProd = process.env.NODE_ENV === 'production';
             if (id) {
                 auth.set({
                     value: jwtValue,
                     httpOnly: true,
                     maxAge: 7 * 86400,
                     path:'/',
-                    domain: '.leviathanwar.com', 
-                    secure: true, 
+                    domain: isProd ? '.leviathanwar.com' : 'localhost', 
+                    secure: isProd, 
                     sameSite: 'none'
                 })
             }

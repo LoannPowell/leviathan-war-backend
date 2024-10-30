@@ -1,3 +1,4 @@
+import { transporter } from "../mailer/transporter";
 import prisma from "../prisma/prismaClient";
 import { errorHandler } from "../utilities/error";
 import { randomHash } from "../utilities/generators";
@@ -22,6 +23,12 @@ export const createUser = async  ({ email, nick, password }:User) => {
                 password: bcryptHash,
                 activationCode: activateHash,
             }
+        })
+        await transporter.sendMail({
+            to: email,
+            from: 'noreply@leviathanwar.com',
+            subject: 'Activate your account ✔',
+            html: `<div>This is your activation code <br/> ${activateHash} </div>`
         })
         return {
             status: 200,
