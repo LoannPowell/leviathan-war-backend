@@ -7,7 +7,8 @@ import { errorHandler } from "../utilities/error";
 
 export const webhookRouter = new Elysia({prefix: '/webhook'})
     .post('/lemonsqueezy', async ({ body, headers, error}) => {
-        const signature = headers['x-signature'];
+        const signature = headers['x-signature'] || headers['X-Signature'];
+        console.log(signature)
         if(!signature || signature !== '34b819913fbdd30b93aba9e8c4ed229d86bd923a') {
             throw new Error('Signature missing');
         }
