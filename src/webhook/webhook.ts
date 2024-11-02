@@ -5,13 +5,14 @@ import { createUser } from "../user/services";
 import { errorHandler } from "../utilities/error";
 import crypto from 'crypto'
 
-const secret = '34b819913fbdd30b93aba9e8c4ed229d86bd923a';
 
 export const webhookRouter = new Elysia({prefix: '/webhook'})
-    .post('/lemonsqueezy', async ({ body, headers, error}) => {
-        const hmac = crypto.createHmac('sha256', secret);
+    .post('/lemonsqueezy', async ({ body, headers, request, error}) => {
+        const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
         const digest = Buffer.from(hmac.update(request.rawBody).digest('hex'), 'utf8');
+        const rawBody = await request.rawBody;
         const signature = Buffer.from(headers['x-signature'] || headers['X-Signature'] || '', 'utf8');
+        console.log(signature,crypto.timingSafeEqual(digest, signature) )
         if (!crypto.timingSafeEqual(digest, signature)) {
             throw new Error('Signature missing');
         }
