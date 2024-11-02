@@ -9,7 +9,44 @@ interface User {
     password: string,
 }
 
-export const createUser = async  ({ email, nick, password }:User) => {
+interface CreateUser extends User {
+    date: string,
+}
+
+
+export const createProspect = async ({email, nick, password}:User) => {
+    const userExist = await prisma.prospectUser.findUnique({
+        where: {
+            email
+        }
+    });
+
+    if(userExist) {
+        await prisma.prospectUser.update({
+            where: {
+                email
+            },
+            data: {
+                nick,
+                password,
+            }
+        });
+        return userExist.id;
+    }
+
+    const newProspect = await prisma.prospectUser.create({
+        data: {
+            email,
+            nick,
+            password
+        }
+    });
+
+    return newProspect.id;
+
+}
+
+export const createUser = async  ({ email, nick, password, date }:CreateUser) => {
     const activateHash = randomHash(email);
     const bcryptHash = await Bun.password.hash(password, {
         algorithm: "bcrypt",
@@ -22,14 +59,10 @@ export const createUser = async  ({ email, nick, password }:User) => {
                 nick,
                 password: bcryptHash,
                 activationCode: activateHash,
+                pro: new Date(date)
             }
         })
-        await transporter.sendMail({
-            to: email,
-            from: 'noreply@leviathanwar.com',
-            subject: 'Activate your account ✔',
-            html: `<div>This is your activation code <br/> ${activateHash} </div>`
-        })
+        
         return {
             status: 200,
             message: "Everything correct!"
@@ -63,5 +96,55 @@ export const deleteAll = async () => {
     }
     catch(e) {
         return errorHandler(e);
+    }
+}
+
+export const deleteUser = async (id:number) => {
+    try {
+        const users = await prisma.user.delete({
+            where: {
+                id,
+            }
+        })
+        return {
+            status: 200,
+            message: users
+        }
+    }
+    catch(e) {
+        return errorHandler(e);
+    }
+}
+
+export const getProspects = async () => {
+    try {
+        const users = await prisma.prospectUser.findMany()
+        return {
+            status: 200,
+            message: users
+        }
+    }
+    catch(e) {
+       return errorHandler(e);
+    }
+}
+
+export const sendVerificationEmail = async (id:number) => {
+    try {
+        const userToActivate = await prisma.user.findUnique({
+            where: {
+                id,
+            }
+        })
+        if(userToActivate) {
+            await transporter.sendMail({
+                to: userToActivate.email,
+                from: 'noreply@leviathanwar.com',
+                subject: 'Activate your account ✔',
+                html: `<div>This is your activation code <br/> ${userToActivate.activationCode}</div>`
+            })
+        }
+        } catch(e) {
+            errorHandler(e)
     }
 }

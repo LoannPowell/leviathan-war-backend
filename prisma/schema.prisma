@@ -19,7 +19,7 @@ model User {
   luck              Int      @default(1)
   region            Int?     // Optional
   factory           Int?     // Optional
-  pro               Boolean  @default(false)
+  pro               DateTime? @default(now())
   theme             String   @default("light")
   exp               Int      @default(420)
   party             Int?     // Optional
@@ -47,6 +47,12 @@ model User {
   leaderOfParty     Party?    @relation("PartyLeader")
 }
 
+model ProspectUser {
+  id                Int      @id @default(autoincrement())
+  email             String   @unique
+  password          String
+  nick              String
+}
 
 
 model Region {

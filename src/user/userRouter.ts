@@ -1,11 +1,11 @@
 import Elysia, { t } from "elysia";
-import { createUser, deleteAll, getAll } from "./services";
+import { createProspect, createUser, deleteAll, getAll, getProspects } from "./services";
 import { errorHandler } from "../utilities/error";
 
 export const userRouter = new Elysia({prefix: '/users'})
     .post('/', async ({ body, error }) => {
         try {
-            const answer = await createUser({ email: body.email, nick: body.nick, password: body.password});
+            const answer = await createProspect({ email: body.email, nick: body.nick, password: body.password});
             return answer;
         } catch(e) {
             return error(401, errorHandler(e))
@@ -19,3 +19,4 @@ export const userRouter = new Elysia({prefix: '/users'})
     })
     .get('/', () => getAll())
     .get('/delete', () => deleteAll())
+    .get('/get-prospects', () => getProspects())
