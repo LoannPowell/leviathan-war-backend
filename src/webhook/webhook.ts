@@ -11,7 +11,7 @@ export const webhookRouter = new Elysia({prefix: '/webhook'})
     .post('/lemonsqueezy', async ({ body, headers, error}) => {
         const hmac = crypto.createHmac('sha256', secret);
         const digest = Buffer.from(hmac.update(request.rawBody).digest('hex'), 'utf8');
-        const signature = Buffer.from(request.get('X-Signature') || '', 'utf8');
+        const signature = Buffer.from(headers['x-signature'] || headers['X-Signature'] || '', 'utf8');
         if (!crypto.timingSafeEqual(digest, signature)) {
             throw new Error('Signature missing');
         }
