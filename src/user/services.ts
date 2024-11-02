@@ -15,13 +15,22 @@ interface CreateUser extends User {
 
 
 export const createProspect = async ({email, nick, password}:User) => {
-    const userExist = await prisma.prospectUser.findUnique({
+
+    const userExist = await prisma.user.findUnique({
+        where: {
+            email
+        }
+    })
+
+    if(userExist) throw new Error('No valid credentials');
+
+    const prospectExist = await prisma.prospectUser.findUnique({
         where: {
             email
         }
     });
 
-    if(userExist) {
+    if(prospectExist) {
         await prisma.prospectUser.update({
             where: {
                 email
@@ -31,7 +40,7 @@ export const createProspect = async ({email, nick, password}:User) => {
                 password,
             }
         });
-        return userExist.id;
+        return {message: prospectExist.id};
     }
 
     const newProspect = await prisma.prospectUser.create({
@@ -41,8 +50,7 @@ export const createProspect = async ({email, nick, password}:User) => {
             password
         }
     });
-
-    return newProspect.id;
+    return {message: newProspect.id};
 
 }
 

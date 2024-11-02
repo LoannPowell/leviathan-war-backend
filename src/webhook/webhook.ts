@@ -3,13 +3,16 @@ import Elysia, { t } from "elysia";
 import prisma from "../prisma/prismaClient";
 import { createUser } from "../user/services";
 import { errorHandler } from "../utilities/error";
+import crypto from 'crypto'
 
+const secret = '34b819913fbdd30b93aba9e8c4ed229d86bd923a';
 
 export const webhookRouter = new Elysia({prefix: '/webhook'})
     .post('/lemonsqueezy', async ({ body, headers, error}) => {
-        const signature = headers['x-signature'] || headers['X-Signature'];
-        console.log(signature)
-        if(!signature || signature !== '34b819913fbdd30b93aba9e8c4ed229d86bd923a') {
+        const hmac = crypto.createHmac('sha256', secret);
+        const digest = Buffer.from(hmac.update(request.rawBody).digest('hex'), 'utf8');
+        const signature = Buffer.from(request.get('X-Signature') || '', 'utf8');
+        if (!crypto.timingSafeEqual(digest, signature)) {
             throw new Error('Signature missing');
         }
         const userId = body?.data?.meta?.custom_data?.userId;
