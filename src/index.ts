@@ -2,11 +2,13 @@ import { Elysia } from "elysia";
 import { cors } from '@elysiajs/cors'
 import { authRouter } from "./auth/authRouter";
 import { userRouter } from "./user/userRouter";
+import { webhookRouter } from "./webhook/webhook";
 
 new Elysia()
     .group('/api/v1', (app) =>
         app
           .get('/health', () => "I'm healthy")
+          .use(webhookRouter)
           .use(cors({
             origin: process.env.ORIGIN
           }))
