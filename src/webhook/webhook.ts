@@ -6,42 +6,29 @@ import { errorHandler } from "../utilities/error";
 import crypto from 'crypto';
 
 export const webhookRouter = new Elysia({ prefix: '/webhook' })
-  .onParse(async ({ request, headers }) => {
-    if (headers['content-type'] === 'application/json; charset=utf-8') {
-      const chunks = [];
-      for await (const chunk of request.body) {
-        chunks.push(chunk);
-      }
-      const rawBody = Buffer.concat(chunks);
-      request.rawBody = rawBody; // Attach rawBody to the request object
-      return rawBody; // Also return the raw body as the parsed result
-    }
-  })
   .post(
     '/lemonsqueezy',
-    async ({ body, headers, request, error }) => {
-      // Safely access headers
-      const signatureHeader = headers?.['x-signature'] || headers?.['X-Signature'];
-      if (!signatureHeader) {
-        throw new Error('Signature header missing');
-      }
-      console.log(request);
+    async ({ headers, request, error }) => {
+      // Capture raw body directly as ArrayBuffer
+      const rawBodyArrayBuffer = await request.arrayBuffer();
+      console.log(request)
+      const rawBody = Buffer.from(rawBodyArrayBuffer); // Convert ArrayBuffer to Buffer for HMAC
+      
       const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
-
-      // Use the raw body captured in onParse
-      if (!request.rawBody) {
-        throw new Error('rawBody not found on request');
-      }
-
-      const digest = Buffer.from(hmac.update(request.rawBody).digest('hex'), 'utf8');
-      const signature = Buffer.from(signatureHeader, 'utf8');
+      const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
+      
+      const signatureHeader = headers?.['x-signature'] || headers?.['X-Signature'];
+      const signature = Buffer.from(signatureHeader || '', 'utf8');
 
       if (!crypto.timingSafeEqual(digest, signature)) {
         throw new Error('Signature mismatch');
       }
 
+      // Parse the JSON body after signature verification
+      const body = JSON.parse(rawBody.toString('utf8'));
       const userId = body?.data?.meta?.custom_data?.userId;
       const date = body?.data?.attributes?.trial_ends_at || body?.data?.attributes?.ends_at;
+
       if (!userId) {
         throw new Error('User ID not found in payload');
       }
