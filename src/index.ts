@@ -5,13 +5,13 @@ import { userRouter } from "./user/userRouter";
 import { webhookRouter } from "./webhook/webhook";
 
 new Elysia()
+.use(cors({
+  origin: process.env.ORIGIN || 'https://leviathanwar.com',
+}))
     .group('/api/v1', (app) =>
         app
           .get('/health', () => "I'm healthy")
           .use(webhookRouter)
-          .use(cors({
-            origin: process.env.ORIGIN
-          }))
           .use(authRouter)
           .use(userRouter)
     )

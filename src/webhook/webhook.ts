@@ -29,6 +29,13 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
     if (!userId) {
         throw new Error('User ID not found in payload');
     }
+    const user = await prisma.prospectUser.findUnique({
+        where: { id: Number(userId) },
+    });
+
+    if(user){
+        
+    }
 
     if (bodyJson?.meta?.event_name === 'subscription_created') {
         const user = await prisma.prospectUser.findUnique({
