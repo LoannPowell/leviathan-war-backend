@@ -11,7 +11,7 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
     const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
     const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
       
-    const signatureHeader = request.headers?.['x-signature'] || request.headers?.['X-Signature'];
+    const signatureHeader = request.headers.get('x-signature');
     const signature = Buffer.from(signatureHeader || '', 'utf8');
 
     if (!crypto.timingSafeEqual(digest, signature)) {
