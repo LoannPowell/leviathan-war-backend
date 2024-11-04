@@ -10,15 +10,10 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
     '/lemonsqueezy',
     async ({ body, headers, request, error }) => {
       const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
-
-      // Directly capture raw body as ArrayBuffer
       const rawBody = await request.arrayBuffer();
-
-      // Generate digest as Buffer
       const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
       const signature = Buffer.from(headers['x-signature'] || headers['X-Signature'] || '', 'utf8');
 
-      // Check if the signature and digest are valid
       if (!crypto.timingSafeEqual(digest, signature)) {
         throw new Error('Signature mismatch');
       }
@@ -60,6 +55,7 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
       headers: t.Object({
         'x-signature': t.String(),
       }),
-      body: t.Not(t.Undefined()),
+      // Use t.Optional instead of t.Not(t.Undefined())
+      body: t.Optional(t.Object({})),
     }
   );
