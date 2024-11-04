@@ -25,7 +25,7 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
       if (!signatureHeader) {
         throw new Error('Signature header missing');
       }
-
+      console.log(request);
       const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
 
       // Use the raw body captured in onParse
