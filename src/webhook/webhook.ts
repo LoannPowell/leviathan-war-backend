@@ -20,13 +20,21 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
   .post(
     '/lemonsqueezy',
     async ({ body, headers, request, error }) => {
+      // Safely access headers
+      const signatureHeader = headers?.['x-signature'] || headers?.['X-Signature'];
+      if (!signatureHeader) {
+        throw new Error('Signature header missing');
+      }
+
       const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
-      console.log(hmac, "HMAC")
+
       // Use the raw body captured in onParse
+      if (!request.rawBody) {
+        throw new Error('rawBody not found on request');
+      }
+
       const digest = Buffer.from(hmac.update(request.rawBody).digest('hex'), 'utf8');
-      console.log(digest, "Digest")
-      const signature = Buffer.from(headers['x-signature'] || headers['X-Signature'] || '', 'utf8');
-      console.log(signature, "signature")
+      const signature = Buffer.from(signatureHeader, 'utf8');
 
       if (!crypto.timingSafeEqual(digest, signature)) {
         throw new Error('Signature mismatch');
@@ -39,7 +47,7 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
       }
 
       try {
-        if (body.meta.event_name === 'subscription_created') {
+        if (body?.meta?.event_name === 'subscription_created') {
           const user = await prisma.prospectUser.findUnique({
             where: { id: Number(userId) },
           });
@@ -47,7 +55,7 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
           if (user) {
             createUser({ email: user.email, nick: user.nick, password: user.password, date });
           }
-        } else if (body.meta.event_name === 'subscription_updated') {
+        } else if (body?.meta?.event_name === 'subscription_updated') {
           const user = await prisma.prospectUser.findUnique({
             where: { id: Number(userId) },
           });
