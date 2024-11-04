@@ -9,7 +9,7 @@ export const authRouter = new Elysia({prefix: '/auth'})
         name:'jwt',
         secret: SECRET_KEY,
     }))
-    .post('/', async ({ body, jwt, cookie: { auth }, error}) => {
+    .post('/', async ({ body, jwt, cookie: { auth }, error, request}) => {
         try {
             const  { id } = await login({ email: body.email, password: body.password});
             const jwtValue = await jwt.sign({id})
