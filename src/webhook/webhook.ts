@@ -19,7 +19,7 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
         throw new Error('Signature mismatch');
     }
 
-    const bodyString = bodyBuffer.toString('utf8'); // Convert Buffer to string
+    const bodyString = Buffer.from(body).toString('utf8');
     const bodyJson = JSON.parse(bodyString); // Parse JSON from string
 
     console.log(bodyJson); // Logs the parsed JSON object
