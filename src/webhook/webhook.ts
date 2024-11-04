@@ -6,18 +6,9 @@ import { errorHandler } from "../utilities/error";
 import crypto from 'crypto';
 
 export const webhookRouter = new Elysia({ prefix: '/webhook' })
-  .post(
-    '/lemonsqueezy',
-    async ({ headers, request, error }) => {
-      // Read the raw body from the request stream as chunks
-      const chunks = [];
-      for await (const chunk of request.body) {
-        chunks.push(chunk);
-      }
-      const rawBody = Buffer.concat(chunks); // Concatenate chunks to create a single Buffer
-
-      // Generate HMAC for signature verification
-      const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
+.post("/lemonsqueezy", async ({ request }) => {
+    const body = await request.arrayBuffer();
+    const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
       const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
       
       const signatureHeader = headers?.['x-signature'] || headers?.['X-Signature'];
@@ -27,47 +18,11 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
         throw new Error('Signature mismatch');
       }
 
-      // Parse the JSON body after signature verification
-      const body = JSON.parse(rawBody.toString('utf8'));
-      const userId = body?.data?.meta?.custom_data?.userId;
-      const date = body?.data?.attributes?.trial_ends_at || body?.data?.attributes?.ends_at;
-
-      if (!userId) {
-        throw new Error('User ID not found in payload');
-      }
-
-      try {
-        if (body?.meta?.event_name === 'subscription_created') {
-          const user = await prisma.prospectUser.findUnique({
-            where: { id: Number(userId) },
-          });
-
-          if (user) {
-            createUser({ email: user.email, nick: user.nick, password: user.password, date });
-          }
-        } else if (body?.meta?.event_name === 'subscription_updated') {
-          const user = await prisma.prospectUser.findUnique({
-            where: { id: Number(userId) },
-          });
-
-          if (user) {
-            await prisma.user.update({
-              where: { email: user.email },
-              data: { pro: new Date(date) },
-            });
-          }
-        }
-
-        return 'Success';
-      } catch (e) {
-        return error(401, errorHandler(e));
-      }
-    },
-    {
-      headers: t.Object({
-        'x-signature': t.String(),
-      }),
-      body: t.Optional(t.Object({})),
-    }
-  );
-
+    console.log(body);
+    return "ok";
+  })
+  .onError(({ error }) => {
+    console.error(error);
+    return new Response("Internal Server Error", { status: 500 });
+  })
+  
