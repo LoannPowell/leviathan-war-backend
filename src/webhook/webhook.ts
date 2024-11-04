@@ -9,11 +9,14 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
   .post(
     '/lemonsqueezy',
     async ({ headers, request, error }) => {
-      // Capture raw body directly as ArrayBuffer
-      const rawBodyArrayBuffer = await request.arrayBuffer();
-      console.log(request)
-      const rawBody = Buffer.from(rawBodyArrayBuffer); // Convert ArrayBuffer to Buffer for HMAC
-      
+      // Read the raw body from the request stream as chunks
+      const chunks = [];
+      for await (const chunk of request.body) {
+        chunks.push(chunk);
+      }
+      const rawBody = Buffer.concat(chunks); // Concatenate chunks to create a single Buffer
+
+      // Generate HMAC for signature verification
       const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
       const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
       
@@ -67,3 +70,4 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
       body: t.Optional(t.Object({})),
     }
   );
+
