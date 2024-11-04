@@ -9,14 +9,14 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
 .post("/lemonsqueezy", async ({ request }) => {
     const body = await request.arrayBuffer();
     const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
-      const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
+    const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
       
-      const signatureHeader = headers?.['x-signature'] || headers?.['X-Signature'];
-      const signature = Buffer.from(signatureHeader || '', 'utf8');
+    const signatureHeader = request.headers?.['x-signature'] || request.headers?.['X-Signature'];
+    const signature = Buffer.from(signatureHeader || '', 'utf8');
 
-      if (!crypto.timingSafeEqual(digest, signature)) {
+    if (!crypto.timingSafeEqual(digest, signature)) {
         throw new Error('Signature mismatch');
-      }
+    }
 
     console.log(body);
     return "ok";
