@@ -1,5 +1,5 @@
 import Elysia, { t } from "elysia";
-import { createProspect, createUser, deleteAll, getAll, getProspects } from "./services";
+import { createProspect, createUser, deleteAll, deleteAllProspects, getAll, getProspects } from "./services";
 import { errorHandler } from "../utilities/error";
 
 export const userRouter = new Elysia({prefix: '/users'})
@@ -20,3 +20,4 @@ export const userRouter = new Elysia({prefix: '/users'})
     .get('/', () => getAll())
     .get('/delete', () => deleteAll())
     .get('/get-prospects', () => getProspects())
+    .get('/delete-prospects', () => deleteAllProspects())

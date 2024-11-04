@@ -112,6 +112,19 @@ export const deleteAll = async () => {
     }
 }
 
+export const deleteAllProspects = async () => {
+    try {
+        const users = await prisma.prospectUser.deleteMany()
+        return {
+            status: 200,
+            message: users
+        }
+    }
+    catch(e) {
+        return errorHandler(e);
+    }
+}
+
 export const deleteUser = async (id:number) => {
     try {
         const users = await prisma.user.delete({
