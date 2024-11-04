@@ -3,17 +3,22 @@ import Elysia, { t } from "elysia";
 import prisma from "../prisma/prismaClient";
 import { createUser } from "../user/services";
 import { errorHandler } from "../utilities/error";
-import crypto from 'crypto'
+import crypto from 'crypto';
 
 export const webhookRouter = new Elysia({ prefix: '/webhook' })
   .post(
     '/lemonsqueezy',
     async ({ body, headers, request, error }) => {
       const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
+
+      // Directly capture raw body as ArrayBuffer
       const rawBody = await request.arrayBuffer();
+
+      // Generate digest as Buffer
       const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
-      const signature = headers['x-signature'] || headers['X-Signature'];
-      console.log(rawBody, signature, digest, crypto.timingSafeEqual(digest, signature));
+      const signature = Buffer.from(headers['x-signature'] || headers['X-Signature'] || '', 'utf8');
+
+      // Check if the signature and digest are valid
       if (!crypto.timingSafeEqual(digest, signature)) {
         throw new Error('Signature mismatch');
       }
@@ -58,4 +63,3 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
       body: t.Not(t.Undefined()),
     }
   );
-
