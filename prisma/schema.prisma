@@ -52,6 +52,7 @@ model ProspectUser {
   email             String   @unique
   password          String
   nick              String
+  subscriptionId    Int
 }
 
 
