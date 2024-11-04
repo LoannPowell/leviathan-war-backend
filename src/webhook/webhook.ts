@@ -6,23 +6,14 @@ import { errorHandler } from "../utilities/error";
 import crypto from 'crypto'
 
 export const webhookRouter = new Elysia({ prefix: '/webhook' })
-  .onParse(async ({ request, headers }) => {
-    if (headers['content-type'] === 'application/json; charset=utf-8') {
-      const chunks = [];
-      for await (const chunk of request.body) {
-        chunks.push(chunk);
-      }
-      const rawBody = Buffer.concat(chunks);
-      return rawBody;
-    }
-  })
   .post(
     '/lemonsqueezy',
     async ({ body, headers, request, error }) => {
       const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
-      const digest = Buffer.from(hmac.update(request.rawBody).digest('hex'), 'utf8');
-      const signature = Buffer.from(headers['x-signature'] || headers['X-Signature'] || '', 'utf8');
-
+      const rawBody = await request.arrayBuffer();
+      const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
+      const signature = headers['x-signature'] || headers['X-Signature'];
+      console.log(rawBody, signature, digest, crypto.timingSafeEqual(digest, signature));
       if (!crypto.timingSafeEqual(digest, signature)) {
         throw new Error('Signature mismatch');
       }
