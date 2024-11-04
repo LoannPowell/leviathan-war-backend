@@ -35,7 +35,7 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
             where: { id: Number(userId) },
         });
         await prisma.prospectUser.update({
-            wher: {
+            where: {
                 email: user?.email
             }, 
             data: {
