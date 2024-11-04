@@ -21,10 +21,12 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
     '/lemonsqueezy',
     async ({ body, headers, request, error }) => {
       const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
-
+      console.log(hmac)
       // Use the raw body captured in onParse
       const digest = Buffer.from(hmac.update(request.rawBody).digest('hex'), 'utf8');
+      console.log(digest)
       const signature = Buffer.from(headers['x-signature'] || headers['X-Signature'] || '', 'utf8');
+      console.log(signature)
 
       if (!crypto.timingSafeEqual(digest, signature)) {
         throw new Error('Signature mismatch');
