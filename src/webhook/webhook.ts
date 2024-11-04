@@ -20,19 +20,16 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
     }
 
     const bodyString = Buffer.from(body).toString('utf8');
-    const bodyJson = JSON.parse(bodyString); // Parse JSON from string
+    const bodyJson = JSON.parse(bodyString);
 
-    console.log(bodyJson); // Logs the parsed JSON object
 
-    // Example: Access specific data from the parsed JSON
-    const userId = bodyJson?.data?.meta?.custom_data?.userId;
+    const userId = bodyJson?.meta?.custom_data?.user_id;
     const date = bodyJson?.data?.attributes?.trial_ends_at || bodyJson?.data?.attributes?.ends_at;
 
     if (!userId) {
         throw new Error('User ID not found in payload');
     }
 
-    // Process based on event name
     if (bodyJson?.meta?.event_name === 'subscription_created') {
         const user = await prisma.prospectUser.findUnique({
             where: { id: Number(userId) },
