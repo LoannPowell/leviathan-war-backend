@@ -7,9 +7,10 @@ import crypto from 'crypto';
 
 export const webhookRouter = new Elysia({ prefix: '/webhook' })
 .post("/lemonsqueezy", async ({ request }) => {
+    // Read the raw body as ArrayBuffer
     const body = await request.arrayBuffer();
     const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
-    const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
+    const digest = Buffer.from(hmac.update(Buffer.from(body)).digest('hex'), 'utf8');
       
     const signatureHeader = request.headers.get('x-signature');
     const signature = Buffer.from(signatureHeader || '', 'utf8');
@@ -20,9 +21,8 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
 
     console.log(body);
     return "ok";
-  })
-  .onError(({ error }) => {
+})
+.onError(({ error }) => {
     console.error(error);
     return new Response("Internal Server Error", { status: 500 });
-  })
-  
+});
