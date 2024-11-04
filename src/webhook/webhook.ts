@@ -6,12 +6,24 @@ import { errorHandler } from "../utilities/error";
 import crypto from 'crypto';
 
 export const webhookRouter = new Elysia({ prefix: '/webhook' })
+  .onParse(async ({ request, headers }) => {
+    if (headers['content-type'] === 'application/json; charset=utf-8') {
+      const chunks = [];
+      for await (const chunk of request.body) {
+        chunks.push(chunk);
+      }
+      const rawBody = Buffer.concat(chunks);
+      request.rawBody = rawBody; // Attach rawBody to the request object
+      return rawBody; // Also return the raw body as the parsed result
+    }
+  })
   .post(
     '/lemonsqueezy',
     async ({ body, headers, request, error }) => {
       const hmac = crypto.createHmac('sha256', process.env.LEMON_SECRET);
-      const rawBody = await request.arrayBuffer();
-      const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
+
+      // Use the raw body captured in onParse
+      const digest = Buffer.from(hmac.update(request.rawBody).digest('hex'), 'utf8');
       const signature = Buffer.from(headers['x-signature'] || headers['X-Signature'] || '', 'utf8');
 
       if (!crypto.timingSafeEqual(digest, signature)) {
@@ -55,7 +67,6 @@ export const webhookRouter = new Elysia({ prefix: '/webhook' })
       headers: t.Object({
         'x-signature': t.String(),
       }),
-      // Use t.Optional instead of t.Not(t.Undefined())
       body: t.Optional(t.Object({})),
     }
   );
