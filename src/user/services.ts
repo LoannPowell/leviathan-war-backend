@@ -61,7 +61,7 @@ export const createUser = async  ({ email, nick, password, date }:CreateUser) =>
         cost: 8, 
     });
     try {
-        await prisma.user.create({
+        const user =await prisma.user.create({
             data: {
                 email, 
                 nick,
@@ -70,7 +70,12 @@ export const createUser = async  ({ email, nick, password, date }:CreateUser) =>
                 pro: new Date(date)
             }
         })
-        
+        await transporter.sendMail({
+            to: user.email,
+            from: 'noreply@leviathanwar.com',
+            subject: 'Activate your account ✔',
+            html: `<div>This is your activation code <br/> ${user.activationCode}</div>`
+        })
         return {
             status: 200,
             message: "Everything correct!"
