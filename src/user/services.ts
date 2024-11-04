@@ -47,7 +47,7 @@ export const createProspect = async ({email, nick, password}:User) => {
         data: {
             email,
             nick,
-            password
+            password,
         }
     });
     return {message: newProspect.id};
